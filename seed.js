@@ -1,22 +1,30 @@
-const bcrypt = require('bcrypt');
-const User = require('./models/User');
+// seeders/seedAdmin.js
+const mongoose = require('mongoose');
+const User = require('../models/User');
 
 const seedAdmin = async () => {
-  try {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+  const adminExists = await User.findOne({ email: 'admin@example.com' });
 
-    const admin = new User({
-      name: 'Admin',
-      email: 'admin@example.com',
-      password: hashedPassword,
-      role: 'ADMIN',
-    });
-
-    await admin.save();
-    console.log('Admin user created');
-  } catch (error) {
-    console.error('Error seeding admin user:', error.message);
+  if (adminExists) {
+    console.log('Admin already exists');
+    return;
   }
+
+  const admin = new User({
+    name: 'Admin User',
+    email: 'admin@example.com',
+    password: 'adminpassword', // Make sure to hash this in your user model
+    role: 'ADMIN',
+  });
+
+  await admin.save();
+  console.log('Admin user created!');
 };
 
-seedAdmin();
+// Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('MongoDB connected');
+    seedAdmin();
+  })
+  .catch((err) => console.error(err));
