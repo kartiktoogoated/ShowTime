@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const User = require('../models/User.js');
 
 const signUp = async (req, res) => {
   try {
+    console.log("Request body:", req.body); // Log request body
     const { name, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -13,8 +14,10 @@ const signUp = async (req, res) => {
       password: hashedPassword,
     });
 
+    console.log("New user created:", newUser); // Log user creation
     res.status(201).json({ message: 'User registered successfully', user: { id: newUser._id, name, email } });
   } catch (error) {
+    console.error("Sign-up error:", error.message); // Log errors
     res.status(400).json({ message: error.message });
   }
 };
