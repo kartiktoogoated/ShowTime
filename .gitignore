@@ -1,0 +1,19 @@
+# Node.js
+node_modules/
+
+# Environment Variables
+.env
+
+# Logs
+logs
+*.log
+
+# Temporary files
+*.tmp
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Uploads directory (if you don't want to track uploaded files)
+uploads/

@@ -1,11 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
-require('dotenv').config();  // Make sure this line is here
+require('dotenv').config(); 
 
 const app = express();
 const PORT = process.env.PORT;
 
-// MongoDB connection
 const connectDB = async () => {
   try {
     const uri = process.env.MONGO_URI;

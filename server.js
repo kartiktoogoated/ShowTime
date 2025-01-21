@@ -2,12 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const authRoutes = require('./src/routes/authRoutes.js'); // Import auth routes
+const authRoutes = require('./src/routes/authRoutes.js'); 
+const movieRoutes = require('./src/routes/movieRoutes.js'); // Import movie routes
 
 const app = express();
-const PORT = process.env.PORT; // Default port to 3001
+const PORT = process.env.PORT;
 
-// Middleware to parse JSON
 app.use(express.json());
 
 // MongoDB connection
@@ -29,8 +29,8 @@ connectDB();
 
 // Route setup
 app.use('/api/auth', authRoutes); 
+app.use('/api/movies', movieRoutes); // Add route for movie management
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
