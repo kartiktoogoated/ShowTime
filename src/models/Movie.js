@@ -1,3 +1,5 @@
+// In src/models/Movie.js
+
 const mongoose = require('mongoose');
 
 const movieSchema = new mongoose.Schema({
@@ -19,6 +21,7 @@ const movieSchema = new mongoose.Schema({
   }
 });
 
-const Movie = mongoose.model('Movie', movieSchema);
+// Check if the model is already defined, if yes, use the existing model, otherwise define it
+const Movie = mongoose.models.Movie || mongoose.model('Movie', movieSchema);
 
 module.exports = Movie;
