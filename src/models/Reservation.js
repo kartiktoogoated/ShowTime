@@ -13,6 +13,7 @@ const movieSchema = new mongoose.Schema({
   showtimes: [showtimeSchema],  // Array of showtimes
 });
 
-const Movie = mongoose.model('Movie', movieSchema);
+const Movie = mongoose.models.Movie || mongoose.model('Movie', movieSchema);
+
 
 module.exports = Movie;
