@@ -6,6 +6,7 @@ const helmet = require('helmet');  // Adding security middleware
 
 const authRoutes = require('./src/routes/authRoutes.js'); 
 const movieRoutes = require('./src/routes/movieRoutes.js'); // Import movie routes
+const reservationRoutes = require('./src/routes/reservationRoutes.js')
 
 const app = express();
 const PORT = process.env.PORT || 8080; // Default to 8080 if PORT is not set

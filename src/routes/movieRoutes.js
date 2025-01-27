@@ -2,8 +2,9 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const Movie = require('../models/Movie.js');
-const { authenticate, authorizeAdmin } = require('../middlewares/authMiddleware.js'); 
 const router = express.Router();
+const { authenticate, authorizeAdmin } = require('../middlewares/authMiddleware.js');
+
 
 // Set up multer for file upload (poster image)
 const storage = multer.diskStorage({

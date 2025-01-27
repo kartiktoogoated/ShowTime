@@ -1,5 +1,5 @@
 const express = require('express');
-// const Movie = require('../models/Movie.js');
+ const Movie = require('../models/Movie.js');
 const Reservation = require('../models/Reservation.js');
 const { authenticate, authorizeAdmin } = require('../middlewares/authMiddleware.js');
 const router = express.Router();
