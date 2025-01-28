@@ -1,19 +1,30 @@
 const mongoose = require('mongoose');
 
-const showtimeSchema = new mongoose.Schema({
-  date: { type: Date, required: true },
-  availableSeats: { type: Number, required: true },
+const reservationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  movieId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Movie',
+    required: true,
+  },
+  showtimeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Movie.showtimes',
+    required: true,
+  },
+  reservedSeats: {
+    type: [Number],  // Array of seat numbers that were reserved
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ['reserved', 'cancelled'],
+    default: 'reserved',
+  },
 });
 
-const movieSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  genre: { type: String, required: true },
-  posterImage: { type: String, required: true },
-  showtimes: [showtimeSchema],  // Array of showtimes
-});
-
-const Movie = mongoose.models.Movie || mongoose.model('Movie', movieSchema);
-
-
-module.exports = Movie;
+module.exports = mongoose.model('Reservation', reservationSchema);
