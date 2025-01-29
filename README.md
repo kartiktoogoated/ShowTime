@@ -17,8 +17,8 @@ This is the **backend** for a movie reservation system where users can browse mo
 - **Multer for File Uploads**
 
 ## 📌 Installation Guide
-1️⃣ **Clone the Repository**
 ```bash
+1️⃣ **Clone the Repository**
 git clone https://github.com/your-username/movie-reservation-backend.git
 cd movie-reservation-backend
 
@@ -35,6 +35,7 @@ JWT_SECRET=your-secret-key
 4️⃣ Start the Server
 
 npm start
+exit ```
 
 🎯 API Endpoints
 🔹 Authentication
