@@ -15,11 +15,11 @@ const showtimeSchema = new mongoose.Schema({
     required: true,
   },
   reservedSeats: {
-    type: [Number],  // Array of seat numbers already booked
+    type: [Number],  
     default: [],
   },
 });
 
-const Showtime = mongoose.models.Showtime || mongoose.model('Showtime', showtimeSchema);
+const Showtime = mongoose.model('Showtime', showtimeSchema);
 
 module.exports = Showtime;

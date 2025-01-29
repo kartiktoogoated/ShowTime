@@ -1,7 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// Authentication middleware
 const authenticate = async (req, res, next) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
 
@@ -18,8 +17,7 @@ const authenticate = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    req.userId = user._id; // Attach userId to request object
-    req.userRole = user.role; // Attach user role to request object
+    req.user = user; 
     next();
   } catch (error) {
     console.error("Authentication error:", error.message);
@@ -27,11 +25,9 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Authorization middleware for admin role
 const authorizeAdmin = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId); // Fetch user by ID
-    if (!user || user.role.toLowerCase() !== "admin") {
+    if (!req.user || req.user.role.toLowerCase() !== "admin") {
       return res.status(403).json({ message: "Admin access required" });
     }
     next();
@@ -41,10 +37,9 @@ const authorizeAdmin = async (req, res, next) => {
   }
 };
 
-// Middleware for promoting a user to admin
 const promoteToAdmin = async (req, res) => {
   try {
-    const { userId } = req.body; // ID of the user to promote
+    const { userId } = req.body; 
     const userToPromote = await User.findById(userId);
 
     if (!userToPromote) {

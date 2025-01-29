@@ -4,6 +4,7 @@ const path = require('path');
 const Movie = require('../models/Movie.js');
 const router = express.Router();
 const { authenticate, authorizeAdmin } = require('../middlewares/authMiddleware.js');
+const Showtime = require('../models/Showtime');
 
 // Set up multer for file upload (poster image)
 const storage = multer.diskStorage({
@@ -46,17 +47,18 @@ const extractShowtimes = (req) => {
   return showtimes;
 };
 
-// Create a new movie (Only Admins)
 router.post('/add', authenticate, authorizeAdmin, upload.single('posterImage'), async (req, res) => {
   try {
     const { title, description, genre, showtimes } = req.body;
-    const posterImage = req.file ? req.file.path : '';  // Get the file path from multer (if file is uploaded)
+    const posterImage = req.file ? req.file.path : '';  
 
     if (!posterImage) {
       return res.status(400).json({ message: 'Poster image is required' });
     }
 
-    if (!showtimes || !Array.isArray(showtimes) || showtimes.length === 0) {
+    const parsedShowtimes = JSON.parse(showtimes);
+
+    if (!parsedShowtimes || !Array.isArray(parsedShowtimes) || parsedShowtimes.length === 0) {
       return res.status(400).json({ message: 'At least one showtime is required' });
     }
 
@@ -65,48 +67,52 @@ router.post('/add', authenticate, authorizeAdmin, upload.single('posterImage'), 
       description,
       genre,
       posterImage,
-      showtimes: showtimes.map(showtime => ({
-        date: new Date(showtime.date),
-        availableSeats: showtime.availableSeats,
-      })),
     });
     await newMovie.save();
-    res.status(201).json({ message: 'Movie added successfully', movie: newMovie });
+
+    const createdShowtimes = await Promise.all(
+      parsedShowtimes.map(async (showtime) => {
+        const newShowtime = new Showtime({
+          movie: newMovie._id,
+          date: new Date(showtime.date),
+          totalSeats: showtime.totalSeats,
+          reservedSeats: [],
+        });
+        return await newShowtime.save();
+      })
+    );
+
+    res.status(201).json({
+      message: 'Movie added successfully',
+      movie: newMovie,
+      showtimes: createdShowtimes,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-
-// Update movie details (Only Admins)
 router.put('/update/:id', authenticate, authorizeAdmin, upload.single('posterImage'), async (req, res) => {
   try {
     const { title, description, genre } = req.body;
-    const posterImage = req.file ? req.file.path : undefined;  // Handle the file update (if a new image is uploaded)
+    const posterImage = req.file ? req.file.path : undefined;  
 
-    const showtimes = extractShowtimes(req);  // Extract showtimes from the form data
+    const showtimes = extractShowtimes(req);  
 
     const movie = await Movie.findById(req.params.id);
     if (!movie) {
       return res.status(404).json({ message: 'Movie not found' });
     }
 
-    // Update the movie properties
     if (title) movie.title = title;
     if (description) movie.description = description;
     if (genre) movie.genre = genre;
-
-    // Update the poster image (if a new one is uploaded)
     if (posterImage) {
       movie.posterImage = posterImage;
     }
-
-    // Update the showtimes (if provided)
     if (showtimes && showtimes.length > 0) {
       movie.showtimes = showtimes;
     }
-
-    // Save the updated movie
     await movie.save();
 
     res.status(200).json({ message: 'Movie updated successfully', movie });
@@ -115,7 +121,6 @@ router.put('/update/:id', authenticate, authorizeAdmin, upload.single('posterIma
   }
 });
 
-// Delete a movie (Only Admins)
 router.delete('/delete/:id', authenticate, authorizeAdmin, async (req, res) => {
   try {
     const movie = await Movie.findByIdAndDelete(req.params.id);
@@ -128,7 +133,6 @@ router.delete('/delete/:id', authenticate, authorizeAdmin, async (req, res) => {
   }
 });
 
-// Get all movies
 router.get('/', async (req, res) => {
   try {
     const movies = await Movie.find();

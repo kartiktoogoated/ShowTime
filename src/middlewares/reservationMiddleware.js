@@ -12,7 +12,6 @@ const checkReservationAvailability = async (req, res, next) => {
     return res.status(404).json({ message: 'Showtime not found' });
   }
 
-  // Check if requested seats are already taken
   const alreadyBooked = reservedSeats.some(seat => showtime.reservedSeats.includes(seat));
   if (alreadyBooked) {
     return res.status(400).json({ message: 'Some seats are already reserved' });
