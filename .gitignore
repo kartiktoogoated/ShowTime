@@ -1,19 +1,28 @@
-# Node.js
-node_modules/
-
-# Environment Variables
-.env
-
 # Logs
-logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Temporary files
-*.tmp
+# Node.js modules
+node_modules/
+.pnpm-debug.log
+pnpm-lock.yaml
 
-# OS-specific files
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# System files
 .DS_Store
 Thumbs.db
 
-# Uploads directory (if you don't want to track uploaded files)
-uploads/
+# IDE-related files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.iml
+*.code-workspace
