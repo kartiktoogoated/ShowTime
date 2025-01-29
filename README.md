@@ -35,8 +35,7 @@ JWT_SECRET=your-secret-key
 4️⃣ Start the Server
 
 npm start
-exit ```
-
+```
 🎯 API Endpoints
 🔹 Authentication
 Method	Endpoint	Description
