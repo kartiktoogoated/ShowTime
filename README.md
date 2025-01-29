@@ -63,3 +63,5 @@ npm start
 ✅ **User Notifications via Email**
 ✅ **Advanced Filtering & Search for Movies**
 ✅ **Automated Seat Selection Based on Availability**
+
+https://roadmap.sh/projects/movie-reservation-system
