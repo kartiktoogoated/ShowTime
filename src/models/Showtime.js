@@ -1,4 +1,3 @@
-// src/models/Showtime.js
 const mongoose = require('mongoose');
 
 const showtimeSchema = new mongoose.Schema({
@@ -11,9 +10,13 @@ const showtimeSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  availableSeats: {
+  totalSeats: {
     type: Number,
     required: true,
+  },
+  reservedSeats: {
+    type: [Number],  // Array of seat numbers already booked
+    default: [],
   },
 });
 

@@ -3,18 +3,29 @@ const Movie = require('../models/Movie');
 
 const createReservation = async (req, res) => {
   try {
-    const { movieId, showtime, reservedSeats } = req.body;
-    const userId = req.user._id; // Get user ID from the authenticated user
+    const { movieId, showtimeId, reservedSeats } = req.body;
+    const userId = req.user._id;
 
-    const movie = await Movie.findById(movieId).lean();
-    if (!movie) {
-      return res.status(404).json({ message: 'Movie not found' });
+    const showtime = await Showtime.findById(showtimeId);
+    if (!showtime) {
+      return res.status(404).json({ message: 'Showtime not found' });
     }
 
+    // Check if requested seats are available
+    const alreadyBooked = reservedSeats.some(seat => showtime.reservedSeats.includes(seat));
+    if (alreadyBooked) {
+      return res.status(400).json({ message: 'One or more seats are already reserved' });
+    }
+
+    // Reserve the seats
+    showtime.reservedSeats.push(...reservedSeats);
+    await showtime.save();
+
+    // Create reservation
     const newReservation = new Reservation({
-      user: userId,
-      movie: movieId,
-      showtime,
+      userId,
+      movieId,
+      showtimeId,
       reservedSeats,
     });
 
@@ -47,17 +58,29 @@ const cancelReservation = async (req, res) => {
       return res.status(404).json({ message: 'Reservation not found' });
     }
 
-    if (reservation.status === 'cancelled') {
-      return res.status(400).json({ message: 'Reservation already cancelled' });
+    const showtime = await Showtime.findById(reservation.showtimeId);
+    if (!showtime) {
+      return res.status(404).json({ message: 'Showtime not found' });
+    }
+
+    // Ensure reservation is not for a past showtime
+    if (new Date(showtime.date) < new Date()) {
+      return res.status(400).json({ message: 'Cannot cancel past reservations' });
     }
 
     reservation.status = 'cancelled';
     await reservation.save();
+
+    // Release reserved seats
+    showtime.reservedSeats = showtime.reservedSeats.filter(seat => !reservation.reservedSeats.includes(seat));
+    await showtime.save();
+
     res.status(200).json({ message: 'Reservation cancelled successfully', reservation });
   } catch (error) {
     res.status(500).json({ message: 'Error cancelling reservation', error: error.message });
   }
 };
+
 
 module.exports = {
   createReservation,

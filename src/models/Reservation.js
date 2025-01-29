@@ -13,11 +13,11 @@ const reservationSchema = new mongoose.Schema({
   },
   showtimeId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Movie.showtimes',
+    ref: 'Showtime',
     required: true,
   },
   reservedSeats: {
-    type: [Number],  // Array of seat numbers that were reserved
+    type: [Number],  // Array of seat numbers reserved
     required: true,
   },
   status: {

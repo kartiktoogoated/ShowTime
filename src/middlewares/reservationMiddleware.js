@@ -5,30 +5,17 @@ const Movie = require('../models/Movie');
 const Showtime = require('../models/Showtime'); 
 
 const checkReservationAvailability = async (req, res, next) => {
-  const { movieId, showtimeId, date } = req.body;
-
-  const movie = await Movie.findById(movieId);
-  if (!movie) {
-    return res.status(404).json({ message: 'Movie not found' });
-  }
+  const { showtimeId, reservedSeats } = req.body;
 
   const showtime = await Showtime.findById(showtimeId);
   if (!showtime) {
     return res.status(404).json({ message: 'Showtime not found' });
   }
 
-  if (new Date(showtime.date).toDateString() !== new Date(date).toDateString()) {
-    return res.status(400).json({ message: 'The selected date does not match the showtime date' });
-  }
-
-  const existingReservation = await Reservation.findOne({
-    user: req.user._id,
-    movie: movieId,
-    showtime: showtimeId,
-    date: date,
-  });
-  if (existingReservation) {
-    return res.status(400).json({ message: 'You have already reserved a seat for this showtime' });
+  // Check if requested seats are already taken
+  const alreadyBooked = reservedSeats.some(seat => showtime.reservedSeats.includes(seat));
+  if (alreadyBooked) {
+    return res.status(400).json({ message: 'Some seats are already reserved' });
   }
 
   next();

@@ -98,14 +98,29 @@ router.delete('/cancel/:reservationId', authenticate, async (req, res) => {
 router.get('/admin/reservations', authenticate, authorizeAdmin, async (req, res) => {
   try {
     const reservations = await Reservation.find().populate('movieId showtimeId');
-    const revenue = reservations.reduce((acc, reservation) => {
-      return acc + reservation.reservedSeats.length * 10; // Assuming $10 per seat
-    }, 0);
 
-    res.status(200).json({ reservations, revenue });
+    const report = {};
+    let totalRevenue = 0;
+
+    reservations.forEach(reservation => {
+      const movieTitle = reservation.movieId.title;
+      const seatsReserved = reservation.reservedSeats.length;
+      const revenue = seatsReserved * 10; // Assuming $10 per seat
+
+      if (!report[movieTitle]) {
+        report[movieTitle] = { revenue: 0, totalSeatsReserved: 0 };
+      }
+
+      report[movieTitle].revenue += revenue;
+      report[movieTitle].totalSeatsReserved += seatsReserved;
+      totalRevenue += revenue;
+    });
+
+    res.status(200).json({ totalRevenue, movieBreakdown: report });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+
 
 module.exports = router;
