@@ -1,6 +1,6 @@
 # ShowTime
 
-This is the **backend** for a movie reservation system where users can browse movies, reserve seats, and manage their bookings.
+This is the **backend** for a movie reservation system where users can browse movies,reserve seats, and manage their bookings.
 
 ## 🚀 Features
 ✅ **User Authentication & Role-Based Access**  
