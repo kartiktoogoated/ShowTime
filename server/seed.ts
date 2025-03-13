@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-const User = require('../models/User');
+import mongoose from 'mongoose';
+import User from '../server/src/models/User';
 
-const seedAdmin = async () => {
+const seedAdmin = async (): Promise<void> => {
   const adminExists = await User.findOne({ email: 'admin@example.com' });
 
   if (adminExists) {
@@ -12,7 +12,7 @@ const seedAdmin = async () => {
   const admin = new User({
     name: 'Admin User',
     email: 'admin@example.com',
-    password: 'adminpassword', 
+    password: 'adminpassword',
     role: 'ADMIN',
   });
 
@@ -20,9 +20,15 @@ const seedAdmin = async () => {
   console.log('Admin user created!');
 };
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+const mongoUri = process.env.MONGO_URI;
+if (!mongoUri) {
+  throw new Error('MONGO_URI not defined in environment variables');
+}
+
+mongoose
+  .connect(mongoUri)  // Options removed for Mongoose v6
   .then(() => {
     console.log('MongoDB connected');
     seedAdmin();
   })
-  .catch((err) => console.error(err));
+  .catch((err: any) => console.error(err));
