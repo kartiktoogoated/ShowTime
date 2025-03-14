@@ -37,6 +37,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     }
   };
 
+  const handleGoogleSignIn = () => {
+    // Redirect the user to the Google OAuth endpoint
+    window.location.href = 'http://localhost:3000/api/auth/google';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -136,6 +141,22 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
           </div>
+
+          {/* Google OAuth Login Button (shown only on sign in) */}
+          {isLogin && (
+            <div className="mt-6">
+              <div className="flex items-center justify-center">
+                <span className="text-gray-400">or</span>
+              </div>
+              <button
+                onClick={handleGoogleSignIn}
+                className="w-full mt-2 bg-white text-gray-800 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 border border-gray-300 hover:bg-gray-100"
+              >
+                <span className="text-xl font-bold">G</span>
+                Sign in with Google
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     </motion.div>
