@@ -1,70 +1,94 @@
-import express, { Request, Response, NextFunction } from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import morgan from 'morgan';
-import helmet from 'helmet';
+import { Router, Request, Response } from 'express';
+import multer, { FileFilterCallback } from 'multer';
+import path from 'path';
+import Movie from '../server/src/models/Movie';
+import Showtime from '../server/src/models/Showtime';
+import { authenticate, authorizeAdmin } from '../server/src/middlewares/authMiddleware';
 
-import authRoutes from './src/routes/authRoutes';
-import movieRoutes from './src/routes/movieRoutes';
-import reservationRoutes from './src/routes/reservationRoutes';
+interface MulterRequest extends Request {
+  file?: Express.Multer.File;
+}
 
-dotenv.config();
+const router = Router();
 
-const app = express();
-const PORT = process.env.PORT || 8080;
+const storage = multer.diskStorage({
+  destination(req, file, cb) {
+    cb(null, './uploads/');
+  },
+  filename(req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
 
-// Middleware setup
-app.use(express.json());
-app.use(morgan('dev'));
-app.use(helmet({ contentSecurityPolicy: false }));
+function fileFilter(req: Request, file: Express.Multer.File, cb: FileFilterCallback) {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+  if (mimetype && extname) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'));
+  }
+}
 
-// MongoDB connection
-const connectDB = async (): Promise<void> => {
-  try {
-    const uri = process.env.MONGO_URI;
-    if (!uri) {
-      throw new Error('MongoDB URI is not defined in environment variables.');
+const upload = multer({ storage, fileFilter });
+
+// POST endpoint to add a movie
+router.post(
+  '/add',
+  authenticate,
+  authorizeAdmin,
+  upload.single('posterImage'),
+  async (req: MulterRequest, res: Response): Promise<void> => {
+    try {
+      const { title, description, genre, showtimes } = req.body;
+      const posterImage = req.file ? req.file.path : '';
+
+      if (!posterImage) {
+        res.status(400).json({ message: 'Poster image is required' });
+        return;
+      }
+
+      const parsedShowtimes = JSON.parse(showtimes);
+      if (!parsedShowtimes || !Array.isArray(parsedShowtimes) || parsedShowtimes.length === 0) {
+        res.status(400).json({ message: 'At least one showtime is required' });
+        return;
+      }
+
+      const newMovie = new Movie({ title, description, genre, posterImage });
+      await newMovie.save();
+
+      const createdShowtimes = await Promise.all(
+        parsedShowtimes.map(async (s: { date: string; totalSeats: number }) => {
+          const newShowtime = new Showtime({
+            movie: newMovie._id,
+            date: new Date(s.date),
+            totalSeats: s.totalSeats,
+            reservedSeats: [],
+          });
+          return newShowtime.save();
+        })
+      );
+
+      res.status(201).json({
+        message: 'Movie added successfully',
+        movie: newMovie,
+        showtimes: createdShowtimes,
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
     }
-    await mongoose.connect(uri);
-    console.log('MongoDB connected successfully');
-  } catch (error: any) {
-    console.error(`MongoDB connection error: ${error.message}`);
-    process.exit(1);
   }
-};
+);
 
-connectDB();
-
-// Route setup
-app.use('/api/auth', authRoutes);
-app.use('/api/movies', movieRoutes);
-app.use('/api/reservations', reservationRoutes);
-
-// Catch-all route for 404 errors
-app.use((req: Request, res: Response) => {
-  res.status(404).json({ message: 'Route not found' });
-});
-
-// Global error handling middleware
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
+// GET endpoint to retrieve movies
+router.get('/', async (req: Request, res: Response) => {
   try {
-    console.log('Shutting down gracefully...');
-    await mongoose.connection.close();
-    console.log('MongoDB connection closed.');
-    process.exit(0);
+    const movies = await Movie.find({});
+    res.status(200).json({ movies });
   } catch (error: any) {
-    console.error('Error during shutdown:', error.message);
-    process.exit(1);
+    res.status(500).json({ message: error.message });
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+export default router;
