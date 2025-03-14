@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Movie {
+    posterImage: any;
     id: string;
     title: string;
     description: string;

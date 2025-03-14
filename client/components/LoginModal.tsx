@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
+import axios from 'axios';
 import { motion } from 'framer-motion';
 import { X, Mail, Lock, LogIn } from 'lucide-react';
 
@@ -8,14 +10,31 @@ interface LoginModalProps {
 
 const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically make an API call to authenticate
-    console.log('Form submitted:', { email, password, isLogin });
-    onClose();
+    const endpoint = isLogin ? '/login' : '/register';
+    // Adjust the URL to match your backend configuration
+    const url = `http://localhost:3000/api/auth${endpoint}`;
+    const payload = isLogin ? { email, password } : { name, email, password };
+
+    try {
+      const { data } = await axios.post(url, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      console.log('Response:', data);
+      // If logging in, store the token for further authenticated requests
+      if (isLogin && data.token) {
+        localStorage.setItem('token', data.token);
+      }
+      onClose();
+    } catch (error: any) {
+      console.error('Authentication error:', error.response?.data || error.message);
+      // Optionally, display an error message to the user here
+    }
   };
 
   return (
@@ -31,7 +50,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
         className="bg-gray-800 rounded-lg overflow-hidden max-w-md w-full"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="relative p-6">
           <button
@@ -46,6 +65,24 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Render the Name field only for sign-up */}
+            {!isLogin && (
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-3 pr-4 py-2 focus:outline-none focus:border-purple-500"
+                  placeholder="Enter your name"
+                  required
+                />
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-400 mb-1">
                 Email Address
