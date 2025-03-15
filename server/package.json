@@ -13,12 +13,16 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
   },
-  "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only -r dotenv/config server.ts"
-  },
+    "scripts": {
+      "dev": "ts-node-dev --respawn --transpile-only -r dotenv/config server.ts",
+      "build": "tsc",            
+      "start": "node dist/server.js" 
+    },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
     "@types/helmet": "^0.0.48",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/mongoose": "^5.11.96",

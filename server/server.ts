@@ -31,15 +31,23 @@ app.use(
   })
 );
 
-// Serve static files from the "uploads" folder
-// Adjust the path as needed based on your folder structure
+// Serve static files from the "uploads" folder located outside the server folder
 app.use(
   '/uploads',
   express.static(path.join(__dirname, '..', 'uploads'))
 );
 
-// Apply CORS (allow requests from http://localhost:5173)
-app.use(cors({ origin: 'http://localhost:5173' }));
+// Apply CORS to allow requests from your frontend (adjust origin as needed)
+app.use(
+  cors({
+    origin: [
+      "https://your-vercel-app.vercel.app", // Replace with your actual Vercel frontend URL
+      "http://localhost:5173" // Keep localhost for development
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, // Allow cookies/session
+  })
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. SESSION & PASSPORT CONFIGURATION
@@ -81,7 +89,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/reservations', reservationRoutes);
 
-// 404 catch-all
+// 404 catch-all route
 app.use((req: Request, res: Response) => {
   res.status(404).json({ message: 'Route not found' });
 });
