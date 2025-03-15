@@ -5,6 +5,7 @@ import { Star, Clock, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MovieDetails from './MovieDetails';
 import { Movie } from '../types';
+const API_URL = process.env.NEXT_PUBLIC_API_URL; // Make sure this is set in Vercel
 
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -15,7 +16,7 @@ const MovieList: React.FC = () => {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await axios.get('http://localhost:3000/api/movies');
+        const response = await axios.get(`${API_URL}/api/movies`);
         // Assuming the response contains { movies: Movie[] }
         setMovies(response.data.movies);
       } catch (err: any) {
@@ -43,15 +44,18 @@ const MovieList: React.FC = () => {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-200"
           >
-            <img
-              src={
-                movie.posterImage.startsWith('http')
-                  ? movie.posterImage
-                  : `http://localhost:3000/${movie.posterImage}`
-              }
-              alt={movie.title}
-              className="w-full h-64 object-cover"
-            />
+            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+<img
+  src={
+    movie.posterImage.startsWith('http')
+      ? movie.posterImage
+      : `${API_URL}/${movie.posterImage}`
+  }
+  alt={movie.title}
+  className="w-full h-[300px] object-cover"
+/>
+
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xl font-bold">{movie.title}</h3>
