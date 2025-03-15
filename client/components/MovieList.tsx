@@ -5,7 +5,6 @@ import { Star, Clock, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MovieDetails from './MovieDetails';
 import { Movie } from '../types';
-const API_URL = process.env.VITE_API_URL; // Make sure this is set in Vercel
 
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -16,7 +15,7 @@ const MovieList: React.FC = () => {
   useEffect(() => {
     const fetchMovies = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/movies`);
+        const response = await axios.get('http://localhost:3000/api/movies');
         // Assuming the response contains { movies: Movie[] }
         setMovies(response.data.movies);
       } catch (err: any) {
@@ -50,7 +49,7 @@ const MovieList: React.FC = () => {
   src={
     movie.posterImage.startsWith('http')
       ? movie.posterImage
-      : `${API_URL}/${movie.posterImage}`
+      : `http://localhost:3000/${movie.posterImage}`
   }
   alt={movie.title}
   className="w-full h-[300px] object-cover"

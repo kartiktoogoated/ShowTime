@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Movie } from '../types';
 import BookingModal from './BookingModal';
-const API_URL = process.env.VITE_API_URL; // Make sure this is set in Vercel
 
 
 interface MovieDetailsProps {
@@ -41,7 +40,7 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onClose }) => {
   src={
     movie.posterImage.startsWith('http')
       ? movie.posterImage
-      : `${API_URL}/${movie.posterImage}`
+      : `http://localhost:3000/${movie.posterImage}`
   }
   alt={movie.title}
   className="w-full h-[300px] object-cover"

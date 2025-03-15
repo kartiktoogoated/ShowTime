@@ -1,16 +1,15 @@
 // types.ts
-
-import { Key } from "react";
+import { Key } from 'react';
 
 export interface Movie {
-  duration: unknown;
-  rating: string;
-  _id: Key | null | undefined;
-  id: string; 
+  _id: Key | null | undefined;  // from Mongo, if needed
+  id: string;                   // your own ID field
   title: string;
   description: string;
-  genre: string; // changed from string[] to string to match the model
-  posterImage: string; // now a string (URL or path), not any
+  duration: number;             // or 'unknown' if you prefer
+  genre: string;                // single string, e.g. "Action, Sci-Fi"
+  posterImage: string;          // URL or path to the poster
+  rating: string;               // store as string if that's what your backend returns
 }
 
 export interface Showtime {
