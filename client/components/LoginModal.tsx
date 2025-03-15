@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { X, Mail, Lock, LogIn } from 'lucide-react';
-const API_URL = process.env.NEXT_PUBLIC_API_URL; // Make sure this is set in Vercel
+const API_URL = process.env.VITE_API_URL; // Make sure this is set in Vercel
 
 interface LoginModalProps {
   onClose: () => void;
@@ -19,7 +19,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
     e.preventDefault();
     const endpoint = isLogin ? '/login' : '/register';
     // Adjust the URL to match your backend configuration
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/auth${endpoint}`;
+    const url = `${process.env.VITE_API_URL}/api/auth${endpoint}`;
     const payload = isLogin ? { email, password } : { name, email, password };
 
     try {

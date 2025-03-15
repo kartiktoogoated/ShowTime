@@ -5,7 +5,7 @@ import { Star, Clock, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MovieDetails from './MovieDetails';
 import { Movie } from '../types';
-const API_URL = process.env.NEXT_PUBLIC_API_URL; // Make sure this is set in Vercel
+const API_URL = process.env.VITE_API_URL; // Make sure this is set in Vercel
 
 const MovieList: React.FC = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -44,7 +44,7 @@ const MovieList: React.FC = () => {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-200"
           >
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const API_URL = process.env.VITE_API_URL;
 
 <img
   src={

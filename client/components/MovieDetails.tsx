@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Movie } from '../types';
 import BookingModal from './BookingModal';
-const API_URL = process.env.NEXT_PUBLIC_API_URL; // Make sure this is set in Vercel
+const API_URL = process.env.VITE_API_URL; // Make sure this is set in Vercel
 
 
 interface MovieDetailsProps {
@@ -35,7 +35,7 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onClose }) => {
           {/* Poster Image + Close Button */}
           <div className="relative">
             {/* Check if posterImage is absolute; if not, prepend base URL */}
-            const API_URL = process.env.NEXT_PUBLIC_API_URL;
+            const API_URL = process.env.VITE_API_URL;
 
 <img
   src={
