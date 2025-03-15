@@ -1,18 +1,16 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import morgan from 'morgan';
 import helmet from 'helmet';
-
-// <-- ADDED
 import session from 'express-session';
-import passport from 'passport'; // We need this to call passport.session()
+import passport from './src/config/passportConfig'; // load passport config early
 
 import authRoutes from './src/routes/authRoutes';
 import movieRoutes from './src/routes/movieRoutes';
 import reservationRoutes from './src/routes/reservationRoutes';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -22,7 +20,7 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// <-- ADDED: configure express-session
+// Configure express-session
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'some_fallback_secret',
@@ -31,7 +29,7 @@ app.use(
   })
 );
 
-// <-- ADDED: initialize Passport session support
+// Initialize Passport and restore authentication state, if any, from the session
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -52,33 +50,20 @@ const connectDB = async (): Promise<void> => {
 
 connectDB();
 
-// Route setup
+// Register routes
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/reservations', reservationRoutes);
 
-// Catch-all route for 404 errors
+// 404 catch-all
 app.use((req: Request, res: Response) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Global error handling middleware
+// Global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(err.status || 500).json({ message: err.message || 'Internal Server Error' });
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  try {
-    console.log('Shutting down gracefully...');
-    await mongoose.connection.close();
-    console.log('MongoDB connection closed.');
-    process.exit(0);
-  } catch (error: any) {
-    console.error('Error during shutdown:', error.message);
-    process.exit(1);
-  }
 });
 
 // Start server
