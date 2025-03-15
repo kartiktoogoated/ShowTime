@@ -32,9 +32,13 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onClose }) => {
         >
           {/* Poster Image + Close Button */}
           <div className="relative">
-            {/* Adjust src as needed; if `posterImage` is a relative path, prefix your server URL */}
+            {/* Check if posterImage is absolute; if not, prepend base URL */}
             <img
-              src={movie.posterImage}
+              src={
+                movie.posterImage.startsWith('http')
+                  ? movie.posterImage
+                  : `http://localhost:3000/${movie.posterImage}`
+              }
               alt={movie.title}
               className="w-full h-[300px] object-cover"
             />
@@ -49,14 +53,11 @@ const MovieDetails: React.FC<MovieDetailsProps> = ({ movie, onClose }) => {
           {/* Movie Info */}
           <div className="p-8">
             <h2 className="text-3xl font-bold mb-4">{movie.title}</h2>
-
             <h3 className="text-xl font-semibold mb-2">About the Movie</h3>
             <p className="text-gray-400 mb-4">{movie.description}</p>
-
             <p className="text-gray-400">
               <strong>Genre:</strong> {movie.genre}
             </p>
-
             {/* Book Tickets Button */}
             <div className="flex justify-center mt-6">
               <button

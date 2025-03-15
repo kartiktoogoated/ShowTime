@@ -11,6 +11,7 @@ interface MulterRequest extends Request {
 
 const router = Router();
 
+// Storage and file filter configuration for multer (used in POST route)
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     cb(null, './uploads/');
@@ -33,6 +34,17 @@ function fileFilter(req: Request, file: Express.Multer.File, cb: FileFilterCallb
 
 const upload = multer({ storage, fileFilter });
 
+// GET route to fetch all movies
+router.get('/', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const movies = await Movie.find();
+    res.status(200).json({ movies });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST route to add a movie
 router.post(
   '/add',
   authenticate,
@@ -57,7 +69,7 @@ router.post(
       const newMovie = new Movie({ title, description, genre, posterImage });
       await newMovie.save();
 
-      const createdShowtimes = await Promise.all(
+      await Promise.all(
         parsedShowtimes.map(async (s: { date: string; totalSeats: number }) => {
           const newShowtime = new Showtime({
             movie: newMovie._id,
@@ -69,12 +81,48 @@ router.post(
         })
       );
 
-      // No `return` in front of res.status(...) => no type conflict
       res.status(201).json({
         message: 'Movie added successfully',
         movie: newMovie,
-        showtimes: createdShowtimes,
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+// DELETE route to remove all movies (placed before the ID-based route)
+router.delete(
+  '/delete-all',
+  authenticate,
+  authorizeAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      await Movie.deleteMany({});
+      await Showtime.deleteMany({});
+      res.status(200).json({ message: 'All movies deleted successfully' });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  }
+);
+
+// DELETE route to remove a movie by ID
+router.delete(
+  '/:id',
+  authenticate,
+  authorizeAdmin,
+  async (req: Request, res: Response): Promise<void> => {
+    try {
+      const movieId = req.params.id;
+      const deletedMovie = await Movie.findByIdAndDelete(movieId);
+      if (!deletedMovie) {
+        res.status(404).json({ message: 'Movie not found' });
+        return;
+      }
+      // Optionally, delete related showtimes:
+      await Showtime.deleteMany({ movie: movieId });
+      res.status(200).json({ message: 'Movie deleted successfully' });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
