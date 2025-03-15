@@ -1,7 +1,12 @@
 // types.ts
 
+import { Key } from "react";
+
 export interface Movie {
-  id: string;
+  duration: unknown;
+  rating: string;
+  _id: Key | null | undefined;
+  id: string; 
   title: string;
   description: string;
   genre: string; // changed from string[] to string to match the model
