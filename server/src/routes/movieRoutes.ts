@@ -4,6 +4,7 @@ import path from 'path';
 import Movie from '../models/Movie';
 import Showtime from '../models/Showtime';
 import { authenticate, authorizeAdmin } from '../middlewares/authMiddleware';
+import { Parser } from 'json2csv';
 
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
@@ -36,11 +37,27 @@ const upload = multer({ storage, fileFilter });
 
 // GET route to fetch all movies
 router.get('/', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const movies = await Movie.find();
-    res.status(200).json({ movies });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+  try{
+    //Get page and limit from query params, defaults to page 1 and 10 movies per page
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+    const skip = (page - 1) * limit;
+
+    //Fetching movies w pagination
+    const movies = await Movie.find().skip(skip).limit(limit);
+
+    //Fetching total count for client side pagination metadata
+    const totalMovies = await Movie.countDocuments();
+    const totalPages = Math.ceil(totalMovies / limit);
+
+    res.status(200).json({
+      movies,
+      page,
+      totalPages,
+      totalMovies,
+    });
+  } catch (error:any){
+    res.status(500).json({message: error.message});
   }
 });
 
@@ -90,6 +107,28 @@ router.post(
     }
   }
 );
+
+//
+router.get('/download'), async(req:Request, res:Response): Promise<void> => {
+  try{
+    //Fetch movies
+    const movies = await Movie.find().lean();
+
+    //Define which fields should be included in csv
+    const fields = ['_id','title','description','genre','posterImage'];
+    const json2csvParser = new Parser({fields});
+    const csv = json2csvParser.parse(movies);
+
+    //Set the appropriate headers for csv file download
+    res.header('Content-Type','text-csv');
+    res.attachment('movies.csv');
+
+    //Send the CSV file content
+    res.send(csv);
+  } catch (error: any){
+    res.status(500).json({ message: error.message});
+  }
+};
 
 // DELETE route to remove all movies (placed before the ID-based route)
 router.delete(
