@@ -13,20 +13,21 @@ const MovieList: React.FC = () => {
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   useEffect(() => {
-    const fetchMovies = async () => {
+    const fetchMoviesWithShowtimes = async () => {
       try {
+        // Assuming your backend returns { movies, page, totalPages, totalMovies }
         const response = await axios.get('http://localhost:3000/api/movies');
-        // Assuming the response contains { movies: Movie[] }
+        // Set movies from the response object
         setMovies(response.data.movies);
       } catch (err: any) {
         console.error('Error fetching movies:', err);
-        setError('Failed to fetch movies.');
+        setError('Failed to fetch movies with showtimes.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMovies();
+    fetchMoviesWithShowtimes();
   }, []);
 
   if (loading) return <p>Loading movies...</p>;
@@ -43,17 +44,15 @@ const MovieList: React.FC = () => {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-200"
           >
-            const API_URL = process.env.VITE_API_URL;
-
-<img
-  src={
-    movie.posterImage.startsWith('http')
-      ? movie.posterImage
-      : `http://localhost:3000/${movie.posterImage}`
-  }
-  alt={movie.title}
-  className="w-full h-[300px] object-cover"
-/>
+            <img
+              src={
+                movie.posterImage.startsWith('http')
+                  ? movie.posterImage
+                  : `http://localhost:3000/${movie.posterImage}`
+              }
+              alt={movie.title}
+              className="w-full h-[300px] object-cover"
+            />
 
             <div className="p-6">
               <div className="flex items-center justify-between mb-2">

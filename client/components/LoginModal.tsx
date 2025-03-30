@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// LoginModal.tsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -6,9 +7,10 @@ import { X, Mail, Lock, LogIn } from 'lucide-react';
 
 interface LoginModalProps {
   onClose: () => void;
+  onLoginSuccess: (user: { id: string; name: string; email: string }) => void;
 }
 
-const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
+const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,7 +19,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const endpoint = isLogin ? '/login' : '/register';
-    // Adjust the URL to match your backend configuration
     const url = `http://localhost:3000/api/auth${endpoint}`;
     const payload = isLogin ? { email, password } : { name, email, password };
 
@@ -25,20 +26,21 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
       const { data } = await axios.post(url, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-      console.log('Response:', data);
-      // If logging in, store the token for further authenticated requests
-      if (isLogin && data.token) {
+      // Save token and user info in localStorage
+      if (data.token) {
         localStorage.setItem('token', data.token);
+      }
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        onLoginSuccess(data.user); // update parent state
       }
       onClose();
     } catch (error: any) {
       console.error('Authentication error:', error.response?.data || error.message);
-      // Optionally, display an error message to the user here
     }
   };
 
   const handleGoogleSignIn = () => {
-    // Redirect the user to the Google OAuth endpoint
     window.location.href = 'http://localhost:3000/api/auth/google';
   };
 
@@ -58,19 +60,13 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative p-6">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-white"
-          >
+          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white">
             <X className="w-6 h-6" />
           </button>
 
-          <h2 className="text-2xl font-bold mb-6">
-            {isLogin ? 'Welcome Back!' : 'Create Account'}
-          </h2>
+          <h2 className="text-2xl font-bold mb-6">{isLogin ? 'Welcome Back!' : 'Create Account'}</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Render the Name field only for sign-up */}
             {!isLogin && (
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-400 mb-1">
@@ -134,15 +130,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ onClose }) => {
           </form>
 
           <div className="mt-4 text-center">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-purple-400 hover:text-purple-300 text-sm"
-            >
+            <button onClick={() => setIsLogin(!isLogin)} className="text-purple-400 hover:text-purple-300 text-sm">
               {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
           </div>
 
-          {/* Google OAuth Login Button (shown only on sign in) */}
           {isLogin && (
             <div className="mt-6">
               <div className="flex items-center justify-center">

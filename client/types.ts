@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // types.ts
 import { Key } from 'react';
 
 export interface Movie {
+  showtimes: any;
   _id: Key | null | undefined;  // from Mongo, if needed
   id: string;                   // your own ID field
   title: string;
@@ -13,6 +15,7 @@ export interface Movie {
 }
 
 export interface Showtime {
+  _id: string;
   id: string;
   movie: string; // this field holds the referenced movie's id
   date: string; // ISO string representing the Date from the model
