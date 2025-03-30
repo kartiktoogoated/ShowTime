@@ -1,12 +1,9 @@
+// authController.ts
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import User from '../models/User';
-
-/* -------------------------------
-   LOCAL SIGNUP / LOGIN ENDPOINTS
---------------------------------- */
 
 export const signUp = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -49,7 +46,12 @@ export const logIn = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: '1d' }
     );
 
-    res.status(200).json({ message: 'Login successful', token });
+    // Return both token and user info
+    res.status(200).json({
+      message: 'Login successful',
+      token,
+      user: { id: user._id, name: user.name, email: user.email },
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -77,12 +79,10 @@ export const promoteToAdmin = async (req: Request, res: Response): Promise<void>
       GOOGLE OAUTH ENDPOINTS
 --------------------------------- */
 
-// "GET /auth/google" - Redirect to Google's consent screen
 export const googleAuth = passport.authenticate('google', {
   scope: ['profile', 'email'],
 });
 
-// "GET /auth/google/callback" - Handle Google response
 export const googleAuthCallback = [
   passport.authenticate('google', { failureRedirect: '/login' }),
   async (req: Request, res: Response) => {

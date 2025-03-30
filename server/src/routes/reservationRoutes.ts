@@ -6,6 +6,7 @@ import { authenticate, authorizeAdmin } from '../middlewares/authMiddleware';
 
 const router = Router();
 
+// Get movies with showtimes for a given date
 router.get('/movies/:date', async (req: Request, res: Response): Promise<void> => {
   try {
     const { date } = req.params;
@@ -39,6 +40,7 @@ router.get('/movies/:date', async (req: Request, res: Response): Promise<void> =
   }
 });
 
+// POST route for reservations
 router.post('/reserve', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const { movieId, showtimeId, seats } = req.body;
@@ -98,6 +100,7 @@ router.post('/reserve', authenticate, async (req: Request, res: Response): Promi
   }
 });
 
+// GET route to fetch reservations for the authenticated user
 router.get('/', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const userId = (req as any).user._id;
@@ -117,6 +120,7 @@ router.get('/', authenticate, async (req: Request, res: Response): Promise<void>
   }
 });
 
+// DELETE route to cancel a reservation
 router.delete('/cancel/:reservationId', authenticate, async (req: Request, res: Response): Promise<void> => {
   try {
     const reservation = await Reservation.findById(req.params.reservationId);
@@ -150,6 +154,7 @@ router.delete('/cancel/:reservationId', authenticate, async (req: Request, res: 
   }
 });
 
+// GET route for admin to fetch reservation revenue report
 router.get('/admin/reservations', authenticate, authorizeAdmin, async (req: Request, res: Response): Promise<void> => {
   try {
     const reservations = await Reservation.find().populate('movieId showtimeId');
