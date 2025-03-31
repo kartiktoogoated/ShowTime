@@ -13,7 +13,7 @@ interface MulterRequest extends Request {
 // Calculate uploads directory relative to this file
 const uploadsDir = path.join(__dirname, '../../../uploads');
 
-const router = Router();
+const movieRouter = Router();
 
 // Storage and file filter configuration for multer (used in POST route)
 const storage = multer.diskStorage({
@@ -39,7 +39,7 @@ function fileFilter(req: Request, file: Express.Multer.File, cb: FileFilterCallb
 const upload = multer({ storage, fileFilter });
 
 // GET route to fetch all movies with pagination
-router.get('/', async (req: Request, res: Response): Promise<void> => {
+movieRouter.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
@@ -61,7 +61,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
 });
 
 // POST route to add a movie
-router.post(
+movieRouter.post(
   '/add',
   authenticate,
   authorizeAdmin,
@@ -121,7 +121,7 @@ router.post(
 );
 
 // GET route to download movies as CSV
-router.get('/download', async (req: Request, res: Response): Promise<void> => {
+movieRouter.get('/download', async (req: Request, res: Response): Promise<void> => {
   try {
     const movies = await Movie.find().lean();
     const fields = ['_id', 'title', 'description', 'genre', 'posterImage'];
@@ -137,7 +137,7 @@ router.get('/download', async (req: Request, res: Response): Promise<void> => {
 });
 
 // DELETE route to remove all movies
-router.delete(
+movieRouter.delete(
   '/delete-all',
   authenticate,
   authorizeAdmin,
@@ -153,7 +153,7 @@ router.delete(
 );
 
 // DELETE route to remove a movie by ID
-router.delete(
+movieRouter.delete(
   '/:id',
   authenticate,
   authorizeAdmin,
@@ -175,7 +175,7 @@ router.delete(
 );
 
 // GET route to filter out movies on the basis of genre and dates
-router.get('/filter',async (req:Request, res:Response): Promise<void> => {
+movieRouter.get('/filter',async (req:Request, res:Response): Promise<void> => {
   try{
     const { genre, startDate, endDate } = req.query;
     const pipeline: any[] = [];
@@ -221,4 +221,4 @@ router.get('/filter',async (req:Request, res:Response): Promise<void> => {
   }
 })
 
-export default router;
+export default movieRouter;

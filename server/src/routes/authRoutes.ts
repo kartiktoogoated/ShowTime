@@ -2,15 +2,15 @@ import { Router } from 'express';
 import { signUp, logIn, promoteToAdmin, googleAuth, googleAuthCallback } from '../controllers/authController';
 import { authenticate, authorizeAdmin } from '../middlewares/authMiddleware';
 
-const router = Router();
+const authRouter = Router();
 
 // Local authentication endpoints
-router.post('/register', signUp);
-router.post('/login', logIn);
-router.post('/promote', authenticate, authorizeAdmin, promoteToAdmin);
+authRouter.post('/register', signUp);
+authRouter.post('/login', logIn);
+authRouter.post('/promote', authenticate, authorizeAdmin, promoteToAdmin);
 
 // Google OAuth endpoints
-router.get('/google', googleAuth);
-router.get('/google/callback', googleAuthCallback);
+authRouter.get('/google', googleAuth);
+authRouter.get('/google/callback', googleAuthCallback);
 
-export default router;
+export default authRouter;

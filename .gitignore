@@ -28,3 +28,4 @@ Thumbs.db
 *.code-workspace
 
 dist/
+uploads/
