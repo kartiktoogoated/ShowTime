@@ -174,4 +174,51 @@ router.delete(
   }
 );
 
+// GET route to filter out movies on the basis of genre and dates
+router.get('/filter',async (req:Request, res:Response): Promise<void> => {
+  try{
+    const { genre, startDate, endDate } = req.query;
+    const pipeline: any[] = [];
+
+    if(genre) {
+      pipeline.push({ $match: {genre} });
+    }
+
+    pipeline.push({
+      $lookup: {
+        from: 'showtimes',
+        localField: '_id',
+        foreignFields: 'movie',
+        as: 'showtimes',
+      },
+    });
+
+    //filtering by dates
+
+    if(!startDate || endDate) {
+      const dateFilter:any ={};
+      if (startDate) {
+        dateFilter.$gte = new Date(startDate as string);
+      }
+      if (endDate) {
+        dateFilter.$lte = new Date(endDate as string);
+      }
+
+      //Adding a stage to the pipeline that filters movies having at least one showtime within range
+      pipeline.push({
+        $match: {
+          showtimes: {
+            $elemMatch: { date: dateFilter },
+          },
+        },
+      });
+    }
+
+    const movies = await Movie.aggregate(pipeline);
+    res.status(200).json(movies);
+  } catch(error:any){
+    res.status(500).json({ message: error.message});
+  }
+})
+
 export default router;
