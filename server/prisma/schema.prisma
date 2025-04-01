@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ReservationStatus {
+  reserved
+  cancelled
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Movie {
+  id           String          @id @default(uuid())
+  title        String
+  description  String
+  genre        String
+  posterImage  String
+
+  // Relations
+  showtimes    ShowTime[]
+  reservations Reservation[]
+
+  @@map("movies")
+}
+
+model ShowTime {
+  id            String         @id @default(uuid())
+  movieId       String
+  date          DateTime
+  totalSeats    Int
+  reservedSeats Int[]          @default([])
+
+  // Relations
+  movie         Movie          @relation(fields: [movieId], references: [id])
+  reservations  Reservation[]
+
+  @@map("showtimes")
+}
+
+model Reservation {
+  id            String             @id @default(uuid())
+  userId        String
+  movieId       String
+  showtimeId    String
+  reservedSeats Int[]
+  status        ReservationStatus  @default(reserved)
+
+  // Relations
+  user          User               @relation(fields: [userId], references: [id])
+  movie         Movie              @relation(fields: [movieId], references: [id])
+  showtime      ShowTime           @relation(fields: [showtimeId], references: [id])
+
+  @@map("reservations")
+}
+
+model User {
+  id           String      @id @default(uuid())
+  name         String
+  email        String      @unique
+  password     String
+  role         UserRole    @default(USER)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // Relations
+  reservations Reservation[]
+
+  @@map("users")
+}
