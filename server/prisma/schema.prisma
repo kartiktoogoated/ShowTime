@@ -1,10 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -61,7 +54,7 @@ model Reservation {
   status        ReservationStatus  @default(reserved)
 
   // Relations
-  user          User               @relation(fields: [userId], references: [id])
+  user          User               @relation("UserReservations", fields: [userId], references: [id])
   movie         Movie              @relation(fields: [movieId], references: [id])
   showtime      ShowTime           @relation(fields: [showtimeId], references: [id])
 
@@ -69,16 +62,31 @@ model Reservation {
 }
 
 model User {
-  id           String      @id @default(uuid())
+  id           String       @id @default(uuid())
   name         String
-  email        String      @unique
+  email        String       @unique
   password     String
-  role         UserRole    @default(USER)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  role         UserRole     @default(USER)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   // Relations
-  reservations Reservation[]
+  reservations Reservation[] @relation("UserReservations")
+  userMoods    UserMood[]    @relation("UserMoods")
 
   @@map("users")
+}
+
+model UserMood {
+  id        String    @id @default(uuid())
+  userId    String
+  message   String
+  mood      String
+  sentiment Int
+  createdAt DateTime  @default(now())
+
+  // Relation with an explicit relation name
+  user      User      @relation("UserMoods", fields: [userId], references: [id])
+
+  @@map("user_moods")
 }

@@ -22,8 +22,8 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // Augment request with user information
-    (req as any).user = user;
+    // Augment request with user information using the renamed property "prismaUser"
+    req.prismaUser = user;
     next();
   } catch (error: any) {
     console.error('Authentication error:', error.message);
@@ -33,7 +33,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
 
 export const authorizeAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const user = (req as any).user;
+    const user = req.prismaUser;
     if (!user || user.role.toLowerCase() !== 'admin') {
       res.status(403).json({ message: 'Admin access required' });
       return;
@@ -129,7 +129,7 @@ export const checkAdminReservationAccess = (
   res: Response,
   next: NextFunction
 ): void => {
-  const user = (req as any).user;
+  const user = req.prismaUser;
   if (!user || user.role.toLowerCase() !== 'admin') {
     res.status(403).json({ message: 'Admins only. Access Denied' });
     return;

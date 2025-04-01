@@ -8,7 +8,8 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
+    "typeRoots": ["./node_modules/@types", "./src/types"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "server.ts"]
+  "include": ["src", "server.ts", "express/index.d.ts", "express"]
 }

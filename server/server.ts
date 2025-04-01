@@ -13,6 +13,8 @@ import cors from 'cors';
 import authRoutes from './src/routes/authRoutes';
 import movieRoutes from './src/routes/movieRoutes';
 import reservationRoutes from './src/routes/reservationRoutes';
+import moodRoutes from "./src/routes/moodRoutes";
+import moodRouter from './src/routes/moodRoutes';
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -88,6 +90,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/mood', moodRoutes)
 
 // 404 catch-all route
 app.use((req: Request, res: Response) => {
