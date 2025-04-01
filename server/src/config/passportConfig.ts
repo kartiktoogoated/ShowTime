@@ -1,6 +1,8 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import User from '../models/User';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 passport.use(
   new GoogleStrategy(
@@ -17,41 +19,42 @@ passport.use(
           return done(new Error('No email found in Google profile'));
         }
 
-        // Look up existing user or create a new one (do not use .lean())
-        let user = await User.findOne({ email });
+        // Look up existing user or create a new one using Prisma
+        let user = await prisma.user.findUnique({ where: { email } });
         if (!user) {
-          user = await User.create({
-            name: profile.displayName,
-            email,
-            password: 'google_oauth_no_password',
+          user = await prisma.user.create({
+            data: {
+              name: profile.displayName,
+              email,
+              password: 'google_oauth_no_password',
+            },
           });
         }
 
-        // Log the user so we can check it has an _id
         console.log('Google strategy user:', user);
         return done(null, user);
       } catch (err) {
         console.error('GoogleStrategy error:', err);
-        return done(err);
+        return done(err as Error);
       }
     }
   )
 );
 
-// Serialize the user: convert the MongoDB ObjectId to a string
+// Serialize the user by storing the Prisma-generated id
 passport.serializeUser((user: any, done) => {
   console.log('Serializing user:', user);
-  if (!user || !user._id) {
-    return done(new Error('No user or missing _id in serializeUser'));
+  if (!user || !user.id) {
+    return done(new Error('No user or missing id in serializeUser'));
   }
-  done(null, user._id.toString());
+  done(null, user.id);
 });
 
-// Deserialize the user from the stored id
+// Deserialize the user from the stored id using Prisma
 passport.deserializeUser(async (id: string, done) => {
   try {
     console.log('Deserializing user with id:', id);
-    const user = await User.findById(id);
+    const user = await prisma.user.findUnique({ where: { id } });
     done(null, user);
   } catch (err) {
     done(err);

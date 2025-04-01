@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import Reservation from '../models/Showtime';
-import Showtime from '../models/Showtime';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 export const checkReservationAvailability = async (
   req: Request,
@@ -9,12 +10,16 @@ export const checkReservationAvailability = async (
 ): Promise<void> => {
   const { showtimeId, reservedSeats } = req.body;
 
-  const showtime = await Showtime.findById(showtimeId);
+  // Find the showtime by its ID
+  const showtime = await prisma.showTime.findUnique({
+    where: { id: showtimeId },
+  });
   if (!showtime) {
     res.status(404).json({ message: 'Showtime not found' });
     return;
   }
 
+  // Check if any of the seats in the request are already reserved
   const alreadyBooked = reservedSeats.some((seat: number) =>
     showtime.reservedSeats.includes(seat)
   );
@@ -31,15 +36,21 @@ export const checkUpcomingReservation = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  const reservationId = req.params.reservationId;
+  const { reservationId } = req.params;
 
-  const reservation = await Reservation.findById(reservationId);
+  // Find the reservation by its ID
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: reservationId },
+  });
   if (!reservation) {
     res.status(404).json({ message: 'Reservation not found' });
     return;
   }
 
-  const showtime = await Showtime.findById((reservation as any).showtime);
+  // Find the showtime related to the reservation
+  const showtime = await prisma.showTime.findUnique({
+    where: { id: reservation.showtimeId },
+  });
   if (!showtime || new Date(showtime.date) <= new Date()) {
     res.status(400).json({ message: 'You can only cancel upcoming reservations' });
     return;
@@ -53,7 +64,8 @@ export const checkAdminReservationAccess = (
   res: Response,
   next: NextFunction
 ): void => {
-  if (!(req as any).user || (req as any).user.role !== 'ADMIN') {
+  // Assumes that the authentication middleware attaches the user object to req.user
+  if (!(req as any).user || ((req as any).user.role as string).toLowerCase() !== 'admin') {
     res.status(403).json({ message: 'Admins only. Access Denied' });
     return;
   }

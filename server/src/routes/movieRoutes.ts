@@ -1,21 +1,22 @@
 import { Router, Request, Response } from 'express';
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
-import Movie from '../models/Movie';
-import Showtime from '../models/Showtime';
-import { authenticate, authorizeAdmin } from '../middlewares/authMiddleware';
+import { PrismaClient } from '@prisma/client';
 import { Parser } from 'json2csv';
+import { authenticate, authorizeAdmin } from '../middlewares/authMiddleware';
+
+const prisma = new PrismaClient();
+
+// Calculate uploads directory relative to this file
+const uploadsDir = path.join(__dirname, '../../../uploads');
 
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
 }
 
-// Calculate uploads directory relative to this file
-const uploadsDir = path.join(__dirname, '../../../uploads');
-
 const movieRouter = Router();
 
-// Storage and file filter configuration for multer (used in POST route)
+// Configure multer storage and file filtering
 const storage = multer.diskStorage({
   destination(req, file, cb) {
     cb(null, uploadsDir);
@@ -38,35 +39,40 @@ function fileFilter(req: Request, file: Express.Multer.File, cb: FileFilterCallb
 
 const upload = multer({ storage, fileFilter });
 
-// GET route to fetch all movies with pagination
-movieRouter.get('/', async (req: Request, res: Response): Promise<void> => {
+/**
+ * GET /api/movies
+ * Fetch all movies with pagination and include showtimes.
+ */
+movieRouter.get('/', async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string, 10) || 1;
     const limit = parseInt(req.query.limit as string, 10) || 10;
     const skip = (page - 1) * limit;
 
-    const movies = await Movie.find().skip(skip).limit(limit);
-    const totalMovies = await Movie.countDocuments();
+    const movies = await prisma.movie.findMany({
+      skip,
+      take: limit,
+      include: { showtimes: true },
+    });
+    const totalMovies = await prisma.movie.count();
     const totalPages = Math.ceil(totalMovies / limit);
 
-    res.status(200).json({
-      movies,
-      page,
-      totalPages,
-      totalMovies,
-    });
+    res.status(200).json({ movies, page, totalPages, totalMovies });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// POST route to add a movie
+/**
+ * POST /api/movies/add
+ * Add a new movie along with its showtimes.
+ */
 movieRouter.post(
   '/add',
   authenticate,
   authorizeAdmin,
   upload.single('posterImage'),
-  async (req: MulterRequest, res: Response): Promise<void> => {
+  async (req: MulterRequest, res: Response) => {
     try {
       const { title, description, genre, showtimes } = req.body;
       // Convert the absolute file path to a relative path (e.g., "uploads/filename.jpg")
@@ -95,18 +101,26 @@ movieRouter.post(
         return;
       }
 
-      const newMovie = new Movie({ title, description, genre, posterImage });
-      await newMovie.save();
+      const newMovie = await prisma.movie.create({
+        data: {
+          title,
+          description,
+          genre,
+          posterImage,
+        },
+      });
 
+      // Create each showtime record and link it to the new movie
       await Promise.all(
         parsedShowtimes.map(async (s: { date: string; totalSeats: number }) => {
-          const newShowtime = new Showtime({
-            movie: newMovie._id,
-            date: new Date(s.date),
-            totalSeats: s.totalSeats,
-            reservedSeats: [],
+          await prisma.showTime.create({
+            data: {
+              movieId: newMovie.id,
+              date: new Date(s.date),
+              totalSeats: s.totalSeats,
+              reservedSeats: [], // initially empty
+            },
           });
-          return newShowtime.save();
         })
       );
 
@@ -120,11 +134,14 @@ movieRouter.post(
   }
 );
 
-// GET route to download movies as CSV
-movieRouter.get('/download', async (req: Request, res: Response): Promise<void> => {
+/**
+ * GET /api/movies/download
+ * Download all movies as a CSV file.
+ */
+movieRouter.get('/download', async (req: Request, res: Response) => {
   try {
-    const movies = await Movie.find().lean();
-    const fields = ['_id', 'title', 'description', 'genre', 'posterImage'];
+    const movies = await prisma.movie.findMany();
+    const fields = ['id', 'title', 'description', 'genre', 'posterImage'];
     const json2csvParser = new Parser({ fields });
     const csv = json2csvParser.parse(movies);
 
@@ -136,89 +153,77 @@ movieRouter.get('/download', async (req: Request, res: Response): Promise<void> 
   }
 });
 
-// DELETE route to remove all movies
-movieRouter.delete(
-  '/delete-all',
-  authenticate,
-  authorizeAdmin,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      await Movie.deleteMany({});
-      await Showtime.deleteMany({});
-      res.status(200).json({ message: 'All movies deleted successfully' });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
+/**
+ * DELETE /api/movies/delete-all
+ * Delete all movies and their associated showtimes.
+ */
+movieRouter.delete('/delete-all', authenticate, authorizeAdmin, async (req: Request, res: Response) => {
+  try {
+    await prisma.movie.deleteMany();
+    await prisma.showTime.deleteMany();
+    res.status(200).json({ message: 'All movies deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
-);
+});
 
-// DELETE route to remove a movie by ID
-movieRouter.delete(
-  '/:id',
-  authenticate,
-  authorizeAdmin,
-  async (req: Request, res: Response): Promise<void> => {
-    try {
-      const movieId = req.params.id;
-      const deletedMovie = await Movie.findByIdAndDelete(movieId);
-      if (!deletedMovie) {
-        res.status(404).json({ message: 'Movie not found' });
-        return;
-      }
-      // Optionally, delete related showtimes:
-      await Showtime.deleteMany({ movie: movieId });
-      res.status(200).json({ message: 'Movie deleted successfully' });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-    }
-  }
-);
-
-// GET route to filter out movies on the basis of genre and dates
-movieRouter.get('/filter',async (req:Request, res:Response): Promise<void> => {
-  try{
-    const { genre, startDate, endDate } = req.query;
-    const pipeline: any[] = [];
-
-    if(genre) {
-      pipeline.push({ $match: {genre} });
-    }
-
-    pipeline.push({
-      $lookup: {
-        from: 'showtimes',
-        localField: '_id',
-        foreignFields: 'movie',
-        as: 'showtimes',
-      },
+/**
+ * DELETE /api/movies/:id
+ * Delete a movie by ID and optionally its related showtimes.
+ */
+movieRouter.delete('/:id', authenticate, authorizeAdmin, async (req: Request, res: Response) => {
+  try {
+    const movieId = req.params.id;
+    // Delete the movie
+    const deletedMovie = await prisma.movie.delete({
+      where: { id: movieId },
     });
+    if (!deletedMovie) {
+      res.status(404).json({ message: 'Movie not found' });
+      return;
+    }
+    // Delete related showtimes
+    await prisma.showTime.deleteMany({
+      where: { movieId: movieId },
+    });
+    res.status(200).json({ message: 'Movie deleted successfully' });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
-    //filtering by dates
-
-    if(!startDate || endDate) {
-      const dateFilter:any ={};
-      if (startDate) {
-        dateFilter.$gte = new Date(startDate as string);
-      }
-      if (endDate) {
-        dateFilter.$lte = new Date(endDate as string);
-      }
-
-      //Adding a stage to the pipeline that filters movies having at least one showtime within range
-      pipeline.push({
-        $match: {
-          showtimes: {
-            $elemMatch: { date: dateFilter },
+/**
+ * GET /api/movies/filter
+ * Filter movies by genre and date range.
+ * Example query parameters: ?genre=Sci-Fi&startDate=2025-03-20&endDate=2025-03-21
+ */
+movieRouter.get('/filter', async (req: Request, res: Response) => {
+  try {
+    const { genre, startDate, endDate } = req.query;
+    const where: any = {};
+    if (genre) {
+      where.genre = genre as string;
+    }
+    if (startDate || endDate) {
+      where.showtimes = {
+        some: {
+          date: {
+            ...(startDate ? { gte: new Date(startDate as string) } : {}),
+            ...(endDate ? { lte: new Date(endDate as string) } : {}),
           },
         },
-      });
+      };
     }
-
-    const movies = await Movie.aggregate(pipeline);
+    
+    const movies = await prisma.movie.findMany({
+      where,
+      include: { showtimes: true },
+    });
+    
     res.status(200).json(movies);
-  } catch(error:any){
-    res.status(500).json({ message: error.message});
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
-})
+});
 
 export default movieRouter;
