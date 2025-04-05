@@ -1,67 +1,105 @@
-# ShowTime
+🎬 ShowTime - Movie Booking System
+==================================
 
-This is the **backend** for a movie reservation system where users can browse movies,reserve seats, and manage their bookings.
+**ShowTime** is a full-featured movie ticket booking platform with a sleek UI, smart backend, and an AI-powered recommendation chatbot that suggests movies based on your mood! 🤖🍿
 
-## 🚀 Features
-✅ **User Authentication & Role-Based Access**  
-✅ **Admin Panel to Add Movies & Showtimes**  
-✅ **Secure Seat Reservations with Availability Check**  
-✅ **Cancel Reservations & View Booking History**  
-✅ **Admin Dashboard with Revenue & Booking Reports**  
+* * * * *
 
-## 🛠️ Tech Stack
-- **Node.js**
-- **Express.js**
-- **MongoDB & Mongoose**
-- **JWT Authentication**
-- **Multer for File Uploads**
+📌 Overview
+-----------
 
-## 📌 Installation Guide
-```bash
-1️⃣ **Clone the Repository**
-git clone https://github.com/your-username/movie-reservation-backend.git
-cd movie-reservation-backend
-```
-2️⃣ Install Dependencies
-```bash
-npm install
-```
-3️⃣ Setup Environment Variables Create a .env file:
-```bash
-PORT=3000
-MONGO_URI=mongodb+srv://your-db-url
-JWT_SECRET=your-secret-key
-```
-4️⃣ Start the Server
-```bash
-npm start
-```
-## 🎯 API Endpoints
-### 🔹 Authentication
-| **Method** | **Endpoint**          | **Description**               |
-|------------|-----------------------|-------------------------------|
-| `POST`     | `/api/auth/register`  | ➕ Register a new user         |
-| `POST`     | `/api/auth/login`     | 🔑 User login & token generation |
+**🎨 Frontend (Client)**\
+🛠 Built with **React (Vite)** and **TypeScript**\
+🖼 User-friendly UI for browsing movies and booking tickets\
+🧠 Mood-based movie recommendations via chatbot\
+📱 Responsive for all screen sizes
 
-### 🔹 Movies & Showtimes
-| **Method** | **Endpoint**          | **Description**                       |
-|------------|-----------------------|---------------------------------------|
-| `POST`     | `/api/movies/add`     | ➕ Add a new movie (**Admin only**)   |
-| `GET`      | `/api/movies`         | 🎥 Get all movies                    |
-| `GET`      | `/api/movies/:date`   | 🗓️ Get movies with showtimes for a date |
+**🧠 Backend (Server)**\
+🚀 Built with **Node.js**, **Express**, and **TypeScript**\
+🗃 Uses **Prisma ORM** with a PostgreSQL database\
+📤 Sends real-time email & SMS notifications (Nodemailer, Twilio)\
+🧠 Integrates sentiment analysis for mood detection\
+🔐 REST API with scalable architecture
 
-### 🔹 Reservations
-| **Method** | **Endpoint**                             | **Description**                              |
-|------------|------------------------------------------|----------------------------------------------|
-| `POST`     | `/api/reservations/reserve`              | 🎟️ Reserve seats for a showtime              |
-| `GET`      | `/api/reservations`                      | 📋 Get user reservations                     |
-| `DELETE`   | `/api/reservations/cancel/:id`           | ❌ Cancel a reservation                      |
-| `GET`      | `/api/reservations/admin/reservations`   | 📊 Admin report of all reservations          |
+* * * * *
 
-## 🛠️ Future Improvements
-✅ **Online Payment Integration**
-✅ **User Notifications via Email**
-✅ **Advanced Filtering & Search for Movies**
-✅ **Automated Seat Selection Based on Availability**
+✨ Features
+----------
 
-https://roadmap.sh/projects/movie-reservation-system
+-   🎥 Movie listings with filtering and details
+
+-   🪑 Seat selection & ticket booking
+
+-   📧 Email & 📱 SMS notifications for confirmation
+
+-   🤖 AI-powered mood-based movie recommendations
+
+-   📊 Trending movies suggestions
+
+-   🔒 User authentication (JWT/session)
+
+-   ⚙️ Docker support for deployment
+
+-   📈 Admin panel for managing movies (coming soon!)
+
+* * * * *
+
+📂 Folder Structure
+-------------------
+![image](https://github.com/user-attachments/assets/fe9c3c18-1667-45d8-bfed-8f58892f7316)
+
+* * * * *
+
+🚀 Upcoming Enhancements
+------------------------
+
+-   💳 Payment gateway integration (Razorpay / Stripe)
+
+-   📱 Mobile app (React Native / Flutter)
+
+-   👤 Admin & role-based access control
+
+-   🌃 Dark mode support
+
+-   ⭐ User ratings & reviews
+
+* * * * *
+
+☁️ Deployment
+-------------
+
+-   🧑‍💻 Frontend: AWS S3
+
+-   🌐 Backend: AWS EC2 (Dockerized)
+
+-   🗄️ Database: PostgreSQL on Railway/Supabase/RDS
+
+* * * * *
+
+🧪 How to Run Locally
+---------------------
+
+1.  🔁 **Clone the repo**\
+    `git clone https://github.com/kartiktoogoated/ShowTime`
+
+2.  📦 **Install dependencies**
+
+    -   `cd client && npm install`
+
+    -   `cd ../server && npm install`
+
+3.  🧱 **Set up database**\
+    `npx prisma generate && npx prisma migrate dev`
+
+4.  🔥 **Run both servers**
+
+    -   Frontend: `npm run dev` inside `client`
+
+    -   Backend: `npm run dev` inside `server`
+
+* * * * *
+
+🤝 Contributing
+---------------
+
+Pull requests are welcome! Feel free to suggest features, report bugs, or open issues 💡
